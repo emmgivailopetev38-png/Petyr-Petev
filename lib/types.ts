@@ -5,10 +5,20 @@ export type Chat = {
   created_at: string;
 };
 
+export type Attachment = {
+  id: string;
+  filename: string;
+  mime: string;
+  size: number;
+  path: string;
+  kind: "input" | "output";
+};
+
 export type Message = {
   id: string;
   chat_id: string;
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  attachments: Attachment[];
 };
