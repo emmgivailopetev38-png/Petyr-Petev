@@ -5,3 +5,4 @@ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
 process.env.SUPABASE_SERVICE_KEY = "test-service-key";
 process.env.ADMIN_PASSWORD = "test-password";
 process.env.AUTH_SECRET = "test-secret-32-chars-long-enough";
+process.env.HERMES_UPLOAD_TOKEN = "test-upload-token";

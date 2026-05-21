@@ -12,6 +12,7 @@ export function proxy(request: NextRequest) {
   const isPublic =
     pathname.startsWith("/login") ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/hermes-upload") ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico";
 
