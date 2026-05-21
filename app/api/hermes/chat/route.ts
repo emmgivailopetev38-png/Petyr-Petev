@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   let stream;
   try {
     stream = await openai.chat.completions.create({
-      model: "hermes",
+      model: "hermes-agent",
       stream: true,
       messages: contextMessages,
     });
