@@ -28,10 +28,21 @@ on conflict (slot) do nothing;
 alter table chats    enable row level security;
 alter table messages enable row level security;
 
-create policy "anon read chats"
-  on chats for select using (true);
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'chats' and policyname = 'anon read chats'
+  ) then
+    create policy "anon read chats" on chats for select using (true);
+  end if;
 
-create policy "anon read messages"
-  on messages for select using (true);
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'messages' and policyname = 'anon read messages'
+  ) then
+    create policy "anon read messages" on messages for select using (true);
+  end if;
+end $$;
 
 -- Service role bypasses RLS by default — no additional policy needed for writes
