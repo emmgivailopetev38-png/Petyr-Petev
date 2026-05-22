@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Message } from "@/lib/types";
+import type { Message, Attachment } from "@/lib/types";
 
 export function useChat(chatId: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load message history from Supabase on mount
   useEffect(() => {
     const supabase = createClient();
     supabase
@@ -16,28 +15,35 @@ export function useChat(chatId: string) {
       .select("*")
       .eq("chat_id", chatId)
       .order("created_at", { ascending: true })
-      .limit(50)
+      .limit(200)
       .then(({ data }) => {
-        if (data) setMessages(data as Message[]);
+        if (data) {
+          setMessages(
+            (data as Array<Message & { attachments?: Attachment[] | null }>).map((m) => ({
+              ...m,
+              attachments: m.attachments ?? [],
+            }))
+          );
+        }
       });
   }, [chatId]);
 
   const sendMessage = useCallback(
-    async (content: string) => {
-      if (isLoading || !content.trim()) return;
+    async (content: string, attachments: Attachment[] = []) => {
+      if (isLoading) return;
+      if (!content.trim() && attachments.length === 0) return;
       setIsLoading(true);
 
-      // Optimistically add user bubble
       const userMsg: Message = {
         id: crypto.randomUUID(),
         chat_id: chatId,
         role: "user",
         content: content.trim(),
         created_at: new Date().toISOString(),
+        attachments,
       };
       setMessages((prev) => [...prev, userMsg]);
 
-      // Add empty assistant bubble for streaming
       const streamingId = crypto.randomUUID();
       setMessages((prev) => [
         ...prev,
@@ -47,6 +53,7 @@ export function useChat(chatId: string) {
           role: "assistant",
           content: "",
           created_at: new Date().toISOString(),
+          attachments: [],
         },
       ]);
 
@@ -54,7 +61,11 @@ export function useChat(chatId: string) {
         const response = await fetch("/api/hermes/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chatId, message: content.trim() }),
+          body: JSON.stringify({
+            chatId,
+            message: content.trim(),
+            attachments,
+          }),
         });
 
         if (!response.ok || !response.body) {
@@ -76,8 +87,26 @@ export function useChat(chatId: string) {
             )
           );
         }
+
+        // Reload the just-saved assistant message to pull any output attachments
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("messages")
+          .select("*")
+          .eq("chat_id", chatId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (data && data.length > 0) {
+          const saved = data[0] as Message & { attachments?: Attachment[] | null };
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamingId
+                ? { ...m, attachments: saved.attachments ?? [] }
+                : m
+            )
+          );
+        }
       } catch {
-        // Remove failed streaming bubble; user bubble stays visible
         setMessages((prev) => prev.filter((m) => m.id !== streamingId));
       } finally {
         setIsLoading(false);
@@ -87,9 +116,7 @@ export function useChat(chatId: string) {
   );
 
   const clearChat = useCallback(async () => {
-    await fetch(`/api/hermes/messages?chatId=${chatId}`, {
-      method: "DELETE",
-    });
+    await fetch(`/api/hermes/messages?chatId=${chatId}`, { method: "DELETE" });
     setMessages([]);
   }, [chatId]);
 
