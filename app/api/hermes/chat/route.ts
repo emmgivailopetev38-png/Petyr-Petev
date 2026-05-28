@@ -3,19 +3,10 @@ import OpenAI from "openai";
 import { createServiceClient } from "@/lib/supabase/server";
 import { HISTORY_LIMIT, STORAGE_BUCKET } from "@/lib/files";
 import { extractOutputUrls, urlsToAttachments } from "@/lib/output-urls";
+import { extractText } from "@/lib/file-extract";
 import type { Attachment } from "@/lib/types";
 
-const PUBLIC_BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  process.env.VERCEL_URL ??
-  "https://zopexpert.vercel.app";
-
-function normaliseAppUrl(): string {
-  const v = PUBLIC_BASE_URL.startsWith("http")
-    ? PUBLIC_BASE_URL
-    : `https://${PUBLIC_BASE_URL}`;
-  return v.replace(/\/$/, "");
-}
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
@@ -43,23 +34,38 @@ export async function POST(request: NextRequest) {
     attachments,
   });
 
-  // Build signed download URLs for any attachments
+  // Server-side: download each attachment from Supabase Storage and extract text
   let attachmentBlock = "";
   if (attachments.length > 0) {
-    const signedLines: string[] = [];
+    const sections: string[] = [];
     for (const a of attachments) {
-      const { data } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .createSignedUrl(a.path, 60 * 60);
-      if (data?.signedUrl) {
-        signedLines.push(`- ${a.filename} (${a.mime}, ${a.size} bytes) → ${data.signedUrl}`);
+        .download(a.path);
+      if (error || !data) {
+        sections.push(
+          `=== File: ${a.filename} (${a.mime}, ${a.size} bytes) ===\n[Could not download from storage: ${error?.message ?? "unknown"}]\n=== End of file ===`
+        );
+        continue;
+      }
+      const buffer = Buffer.from(await data.arrayBuffer());
+      const extracted = await extractText(buffer, a.mime, a.filename);
+      if (extracted.ok && extracted.text !== undefined) {
+        const truncatedNote = extracted.truncated
+          ? `\n\n[... truncated, total ${extracted.originalLength} characters in original file]`
+          : "";
+        sections.push(
+          `=== File: ${a.filename} (${a.mime}, ${a.size} bytes) ===\n${extracted.text}${truncatedNote}\n=== End of file ===`
+        );
+      } else {
+        sections.push(
+          `=== File: ${a.filename} (${a.mime}, ${a.size} bytes) ===\n[${extracted.reason ?? "Could not extract content"}]\n=== End of file ===`
+        );
       }
     }
-    attachmentBlock = signedLines.length
-      ? `[ZOPEXPERT context]\nYou have file tools (terminal, Python). The user attached the following files. Download with curl:\n${signedLines.join(
-          "\n"
-        )}\n\nTools available: pdfplumber, python-docx, openpyxl, pandas, Pillow+tesseract, reportlab, weasyprint.\n\nIf you generate output files, upload them with:\ncurl -X POST ${normaliseAppUrl()}/api/hermes-upload -H "Authorization: Bearer $HERMES_UPLOAD_TOKEN" -F "file=@/tmp/output" -F "filename=<name>"\nThe response JSON contains a "url" field — include that URL verbatim in your reply so the UI renders a download button.\n\n---\n\nUser message: ${message}`
-      : "";
+    attachmentBlock = `[ZOPEXPERT context]\nThe user attached files. Below is the extracted text content. Respond based on this content. Answer in the user's language.\n\n${sections.join(
+      "\n\n"
+    )}\n\n---\n\nUser message: ${message}`;
   }
 
   const outboundContent = attachmentBlock || message;

@@ -22,6 +22,10 @@ vi.mock("@/lib/supabase/server", () => ({
           error: null,
         }),
         list: vi.fn().mockResolvedValue({ data: [{ metadata: { size: 100, mimetype: "application/pdf" } }] }),
+        download: vi.fn().mockResolvedValue({
+          data: new Blob(["test file content"], { type: "text/plain" }),
+          error: null,
+        }),
       })),
     },
   })),
