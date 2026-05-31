@@ -40,19 +40,34 @@ export default async function AdminWorkspacesPage() {
             ZOPEXPERT · Настройки на работни места
           </h1>
         </div>
-        <a
-          href="/"
-          style={{
-            fontSize: 12,
-            color: "var(--color-text-secondary)",
-            textDecoration: "none",
-            padding: "6px 12px",
-            border: "1px solid var(--color-border)",
-            borderRadius: 6,
-          }}
-        >
-          ← Назад
-        </a>
+        <div style={{ display: "flex", gap: 8 }}>
+          <a
+            href="/admin/knowledge"
+            style={{
+              fontSize: 12,
+              color: "var(--color-text-secondary)",
+              textDecoration: "none",
+              padding: "6px 12px",
+              border: "1px solid var(--color-border)",
+              borderRadius: 6,
+            }}
+          >
+            📚 База знания
+          </a>
+          <a
+            href="/"
+            style={{
+              fontSize: 12,
+              color: "var(--color-text-secondary)",
+              textDecoration: "none",
+              padding: "6px 12px",
+              border: "1px solid var(--color-border)",
+              borderRadius: 6,
+            }}
+          >
+            ← Назад
+          </a>
+        </div>
       </header>
       <WorkspaceList initial={chats} />
     </main>
