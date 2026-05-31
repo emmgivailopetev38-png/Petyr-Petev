@@ -145,8 +145,12 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
             fontWeight: 600,
             fontSize: 13,
             color: "var(--color-text-primary)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
+          {chat.icon && <span style={{ fontSize: 14 }}>{chat.icon}</span>}
           {chat.title}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -191,9 +195,11 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
                 fontSize: 12,
                 textAlign: "center",
                 marginTop: 24,
+                padding: "0 24px",
+                lineHeight: 1.6,
               }}
             >
-              Напишете нещо или плъзнете файл тук...
+              {chat.welcome_message ?? "Напишете нещо или плъзнете файл тук..."}
             </p>
           )}
           <div style={{ fontSize: messageFontSize }}>
@@ -272,7 +278,11 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Съобщение... (Enter за изпращане)"
+          placeholder={
+            chat.vertical
+              ? `Питай за ${chat.title.toLowerCase()}... (Enter за изпращане)`
+              : "Съобщение... (Enter за изпращане)"
+          }
           rows={1}
           style={{
             flex: 1,
