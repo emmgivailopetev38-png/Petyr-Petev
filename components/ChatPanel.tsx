@@ -6,6 +6,8 @@ import { useChat } from "@/hooks/useChat";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { ChatMessage } from "@/components/ChatMessage";
 import { FileChip } from "@/components/FileChip";
+import { PlaybookMenu } from "@/components/PlaybookMenu";
+import { PlaybookRunBanner } from "@/components/PlaybookRunBanner";
 import { FILE_LIMITS } from "@/lib/files";
 import type { Chat } from "@/lib/types";
 
@@ -16,11 +18,16 @@ type Props = {
 };
 
 export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
-  const { messages, isLoading, sendMessage, clearChat } = useChat(chat.id);
+  const { messages, isLoading, sendMessage, clearChat, reloadMessages } = useChat(chat.id);
   const { files, enqueue, remove, clear, completedAttachments, isUploading } =
     useFileUpload(chat.id);
   const [input, setInput] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [activeRun, setActiveRun] = useState<{
+    runId: string;
+    totalSteps: number;
+    playbookName: string;
+  } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -154,6 +161,15 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
           {chat.title}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {chat.vertical && (
+            <PlaybookMenu
+              chatId={chat.id}
+              workspaceId={chat.id}
+              onRunStarted={(runId, totalSteps, playbookName) =>
+                setActiveRun({ runId, totalSteps, playbookName })
+              }
+            />
+          )}
           <button
             onClick={onToggleFullscreen}
             title={isFullscreen ? "Минимизирай" : "На цял екран"}
@@ -179,6 +195,18 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
         </div>
       </div>
 
+      {activeRun && (
+        <div style={{ padding: "8px 14px 0", flexShrink: 0 }}>
+          <PlaybookRunBanner
+            runId={activeRun.runId}
+            totalSteps={activeRun.totalSteps}
+            playbookName={activeRun.playbookName}
+            onComplete={() => {
+              reloadMessages();
+            }}
+          />
+        </div>
+      )}
       <div
         style={{
           flex: 1,

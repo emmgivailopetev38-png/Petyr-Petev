@@ -120,5 +120,23 @@ export function useChat(chatId: string) {
     setMessages([]);
   }, [chatId]);
 
-  return { messages, isLoading, sendMessage, clearChat };
+  const reloadMessages = useCallback(async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("chat_id", chatId)
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (data) {
+      setMessages(
+        (data as Array<Message & { attachments?: Attachment[] | null }>).map((m) => ({
+          ...m,
+          attachments: m.attachments ?? [],
+        })),
+      );
+    }
+  }, [chatId]);
+
+  return { messages, isLoading, sendMessage, clearChat, reloadMessages };
 }
