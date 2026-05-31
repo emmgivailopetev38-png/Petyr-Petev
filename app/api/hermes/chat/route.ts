@@ -92,11 +92,29 @@ export async function POST(request: NextRequest) {
   );
   contextMessages.push({ role: "user", content: outboundContent });
 
-  // Compose messages: optional system + history
+  // Compose messages: optional system + optional RAG context + history
   const messages: HermesMessage[] = [];
   if (systemPrompt && systemPrompt.trim().length > 0) {
     messages.push({ role: "system", content: systemPrompt });
   }
+
+  // Try to retrieve relevant knowledge chunks
+  try {
+    const { searchKnowledge } = await import("@/lib/knowledge/search");
+    const chunks = await searchKnowledge(chatId, message, 3);
+    if (chunks.length > 0) {
+      const contextBlock = chunks
+        .map((c, i) => `[Източник ${i + 1}]\n${c.content}`)
+        .join("\n\n---\n\n");
+      messages.push({
+        role: "system",
+        content: `Релевантна база знания за този въпрос:\n\n${contextBlock}\n\nИзползвай тази информация, когато е приложима. Ако цитираш, посочи кой източник.`,
+      });
+    }
+  } catch {
+    // ignore if search fails
+  }
+
   for (const m of contextMessages) {
     messages.push({ role: m.role, content: m.content });
   }
