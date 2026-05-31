@@ -3,6 +3,10 @@ export type Chat = {
   slot: number;
   title: string;
   created_at: string;
+  system_prompt: string | null;
+  welcome_message: string | null;
+  icon: string | null;
+  vertical: string | null;
 };
 
 export type Attachment = {
