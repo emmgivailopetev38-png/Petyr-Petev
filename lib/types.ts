@@ -26,3 +26,5 @@ export type Message = {
   created_at: string;
   attachments: Attachment[];
 };
+
+export type { Playbook, PlaybookStep, PlaybookRun, PlaybookRunState } from "@/lib/playbooks/types";
