@@ -29,13 +29,18 @@ export function ChatGrid({ chats }: { chats: Chat[] }) {
     }
   }
 
+  // Dynamic 2-column grid; rows scale with chat count
+  const count = chats.length;
+  const cols = count <= 8 ? 2 : 3;
+  const rows = Math.ceil(count / cols);
+
   return (
     <div
       style={{
         flex: 1,
         display: "grid",
-        gridTemplateColumns: "repeat(2, 1fr)",
-        gridTemplateRows: "repeat(3, 1fr)",
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
         gap: 12,
         minHeight: 0,
       }}
