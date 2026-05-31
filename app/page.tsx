@@ -40,6 +40,19 @@ export default async function HomePage() {
         </h1>
         <div style={{ display: "flex", gap: 4 }}>
           <a
+            href="/admin/monitor"
+            title="Мониторинг на обществени поръчки"
+            style={{
+              fontSize: 16,
+              color: "var(--color-text-tertiary)",
+              textDecoration: "none",
+              padding: "4px 8px",
+              borderRadius: 4,
+            }}
+          >
+            🛡️
+          </a>
+          <a
             href="/admin/knowledge"
             title="База знания"
             style={{

@@ -42,6 +42,19 @@ export default async function AdminWorkspacesPage() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <a
+            href="/admin/monitor"
+            style={{
+              fontSize: 12,
+              color: "var(--color-text-secondary)",
+              textDecoration: "none",
+              padding: "6px 12px",
+              border: "1px solid var(--color-border)",
+              borderRadius: 6,
+            }}
+          >
+            🛡️ Мониторинг
+          </a>
+          <a
             href="/admin/knowledge"
             style={{
               fontSize: 12,
