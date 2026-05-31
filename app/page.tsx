@@ -23,62 +23,75 @@ export default async function HomePage() {
         style={{
           flexShrink: 0,
           display: "flex",
-          alignItems: "center",
+          alignItems: "baseline",
           justifyContent: "space-between",
+          paddingBottom: 14,
+          marginBottom: 4,
+          borderBottom: "1px solid var(--color-rule-faint)",
+          position: "relative",
         }}
       >
-        <h1
-          style={{
-            fontWeight: 700,
-            fontSize: 16,
-            color: "var(--color-text-secondary)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          ZOPEXPERT
-        </h1>
-        <div style={{ display: "flex", gap: 4 }}>
-          <a
-            href="/admin/monitor"
-            title="Мониторинг на обществени поръчки"
+        <div style={{ display: "flex", alignItems: "baseline", gap: 18 }}>
+          <h1
             style={{
-              fontSize: 16,
-              color: "var(--color-text-tertiary)",
-              textDecoration: "none",
-              padding: "4px 8px",
-              borderRadius: 4,
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: 30,
+              letterSpacing: "0.015em",
+              color: "var(--color-ink-near-black)",
+              lineHeight: 1,
             }}
           >
-            🛡️
-          </a>
-          <a
-            href="/admin/knowledge"
-            title="База знания"
+            ZOPEXPERT
+          </h1>
+          <span
             style={{
-              fontSize: 16,
-              color: "var(--color-text-tertiary)",
-              textDecoration: "none",
-              padding: "4px 8px",
-              borderRadius: 4,
+              fontFamily: "var(--font-mono)",
+              fontSize: 9.5,
+              letterSpacing: "0.22em",
+              color: "var(--color-ink-faint)",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
             }}
           >
-            📚
-          </a>
-          <a
-            href="/admin/workspaces"
-            title="Настройки на работни места"
-            style={{
-              fontSize: 16,
-              color: "var(--color-text-tertiary)",
-              textDecoration: "none",
-              padding: "4px 8px",
-              borderRadius: 4,
-            }}
-          >
-            ⚙️
-          </a>
+            обществени поръчки · асистент
+          </span>
         </div>
+        <div style={{ display: "flex", gap: 2 }}>
+          {[
+            { href: "/admin/monitor", icon: "🛡️", title: "Мониторинг" },
+            { href: "/admin/knowledge", icon: "📚", title: "База знания" },
+            { href: "/admin/workspaces", icon: "⚙️", title: "Настройки" },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              title={item.title}
+              style={{
+                fontSize: 14,
+                color: "var(--color-ink-muted)",
+                textDecoration: "none",
+                padding: "6px 10px",
+                borderRadius: 3,
+                lineHeight: 1,
+                transition: "background 150ms ease",
+              }}
+            >
+              {item.icon}
+            </a>
+          ))}
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            bottom: -1,
+            left: 0,
+            width: 96,
+            height: 2,
+            background:
+              "linear-gradient(90deg, var(--color-gold-warm) 0%, var(--color-gold-pale) 100%)",
+          }}
+        />
       </header>
 
       <ChatGrid chats={chats} />

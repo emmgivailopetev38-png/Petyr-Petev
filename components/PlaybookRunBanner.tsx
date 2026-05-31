@@ -77,13 +77,16 @@ export function PlaybookRunBanner({ runId, totalSteps, playbookName, onComplete 
 
 const banner: React.CSSProperties = {
   padding: "8px 14px",
-  background: "rgba(124, 58, 237, 0.12)",
-  border: "1px solid rgba(124, 58, 237, 0.4)",
-  borderRadius: 6,
-  color: "var(--color-text-primary)",
+  background: "var(--color-burgundy-soft)",
+  border: "1px solid rgba(107, 30, 45, 0.25)",
+  borderLeft: "2px solid var(--color-burgundy-deep)",
+  borderRadius: 3,
+  color: "var(--color-ink-charcoal)",
+  fontFamily: "var(--font-body)",
   fontSize: 12,
   display: "flex",
   alignItems: "center",
   gap: 8,
   flexShrink: 0,
+  letterSpacing: "0.01em",
 };

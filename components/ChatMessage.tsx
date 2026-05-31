@@ -4,31 +4,40 @@ import { DownloadChip } from "@/components/DownloadChip";
 
 export function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === "user";
-  const inputAttachments = (message.attachments ?? []).filter((a) => a.kind === "input");
-  const outputAttachments = (message.attachments ?? []).filter((a) => a.kind === "output");
+  const inputAttachments = (message.attachments ?? []).filter(
+    (a) => a.kind === "input",
+  );
+  const outputAttachments = (message.attachments ?? []).filter(
+    (a) => a.kind === "output",
+  );
 
   return (
     <div
       style={{
         display: "flex",
         justifyContent: isUser ? "flex-end" : "flex-start",
-        marginBottom: 8,
+        marginBottom: 10,
       }}
     >
       <div
         style={{
-          maxWidth: "82%",
-          padding: "8px 12px",
-          borderRadius: isUser ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
+          maxWidth: "80%",
+          padding: "10px 14px",
+          borderRadius: isUser ? "8px 8px 2px 8px" : "2px 8px 8px 8px",
           background: isUser
-            ? "var(--color-accent-violet)"
-            : "var(--color-bg-glass)",
-          border: isUser ? "none" : "1px solid var(--color-border)",
-          color: "var(--color-text-primary)",
-          fontSize: 13,
-          lineHeight: 1.6,
+            ? "var(--color-burgundy-deep)"
+            : "var(--color-paper-warm)",
+          border: isUser ? "none" : "1px solid var(--color-rule-soft)",
+          borderLeft: isUser ? "none" : "2px solid var(--color-burgundy-deep)",
+          color: isUser
+            ? "var(--color-paper-cream)"
+            : "var(--color-ink-charcoal)",
+          fontFamily: "var(--font-body)",
+          fontSize: 13.5,
+          lineHeight: 1.65,
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
+          letterSpacing: "0.005em",
         }}
       >
         {inputAttachments.length > 0 && (
@@ -50,11 +59,18 @@ export function ChatMessage({ message }: { message: Message }) {
             ))}
           </div>
         )}
-        {message.content || (
-          inputAttachments.length === 0 && (
-            <span style={{ opacity: 0.4, fontFamily: "monospace" }}>▋</span>
-          )
-        )}
+        {message.content ||
+          (inputAttachments.length === 0 && (
+            <span
+              style={{
+                opacity: 0.4,
+                fontFamily: "var(--font-mono)",
+                fontSize: 13,
+              }}
+            >
+              ▋
+            </span>
+          ))}
         {outputAttachments.length > 0 && (
           <div>
             {outputAttachments.map((a) => (

@@ -36,27 +36,65 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        padding: 24,
       }}
     >
       <div
         style={{
-          background: "var(--color-bg-deep)",
-          border: "1px solid var(--color-border)",
-          borderRadius: 16,
-          padding: 32,
-          width: 360,
+          width: 420,
+          maxWidth: "100%",
+          background: "var(--color-paper-cream)",
+          border: "1px solid var(--color-rule-soft)",
+          borderTop: "3px solid var(--color-burgundy-deep)",
+          borderRadius: 6,
+          padding: "36px 32px 28px",
+          boxShadow:
+            "0 1px 2px rgba(31, 27, 22, 0.04), 0 24px 60px -20px rgba(31, 27, 22, 0.08)",
+          position: "relative",
         }}
       >
-        <h1
+        <div
           style={{
-            fontWeight: 700,
-            fontSize: 22,
-            marginBottom: 24,
-            color: "var(--color-text-primary)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 28,
           }}
         >
-          ZOPEXPERT
-        </h1>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: 34,
+              letterSpacing: "0.02em",
+              color: "var(--color-ink-near-black)",
+              lineHeight: 1,
+            }}
+          >
+            ZOPEXPERT
+          </h1>
+          <div
+            style={{
+              width: 56,
+              height: 2,
+              background:
+                "linear-gradient(90deg, var(--color-gold-warm) 0%, var(--color-gold-pale) 100%)",
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 9.5,
+              letterSpacing: "0.22em",
+              color: "var(--color-ink-faint)",
+              textTransform: "uppercase",
+              marginTop: 4,
+            }}
+          >
+            обществени поръчки · вход
+          </span>
+        </div>
         <form onSubmit={handleSubmit}>
           <input
             type="password"
@@ -66,18 +104,34 @@ export default function LoginPage() {
             autoFocus
             style={{
               width: "100%",
-              padding: "10px 14px",
-              background: "var(--color-input)",
-              border: "1px solid var(--color-border)",
-              borderRadius: 8,
-              color: "var(--color-text-primary)",
+              padding: "11px 14px",
+              background: "#FFFAF0",
+              border: "1px solid var(--color-rule-soft)",
+              borderRadius: 4,
+              color: "var(--color-ink-charcoal)",
               fontSize: 14,
-              marginBottom: 12,
+              fontFamily: "var(--font-body)",
+              marginBottom: 14,
               outline: "none",
+              transition: "border-color 150ms ease",
             }}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor =
+                "var(--color-burgundy-deep)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--color-rule-soft)")
+            }
           />
           {error && (
-            <p style={{ color: "#ef4444", fontSize: 13, marginBottom: 12 }}>
+            <p
+              style={{
+                color: "var(--color-error)",
+                fontSize: 12,
+                marginBottom: 12,
+                fontFamily: "var(--font-body)",
+              }}
+            >
               {error}
             </p>
           )}
@@ -86,15 +140,19 @@ export default function LoginPage() {
             disabled={loading || !password}
             style={{
               width: "100%",
-              padding: 10,
-              background: "var(--color-accent-violet)",
+              padding: "11px",
+              background: "var(--color-burgundy-deep)",
               border: "none",
-              borderRadius: 8,
-              color: "#fff",
+              borderRadius: 4,
+              color: "var(--color-paper-cream)",
               fontWeight: 600,
-              fontSize: 14,
+              fontSize: 13,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              fontFamily: "var(--font-body)",
               cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading || !password ? 0.6 : 1,
+              opacity: loading || !password ? 0.5 : 1,
+              transition: "background 150ms ease",
             }}
           >
             {loading ? "Влизане..." : "Влез"}

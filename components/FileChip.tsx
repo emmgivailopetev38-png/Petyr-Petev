@@ -33,16 +33,19 @@ export function FileChip({
         gap: 6,
         padding: "4px 10px 4px 8px",
         background: isError
-          ? "rgba(239, 68, 68, 0.12)"
-          : "var(--color-bg-glass)",
+          ? "rgba(139, 26, 26, 0.08)"
+          : "rgba(255, 250, 240, 0.7)",
         border: `1px solid ${
-          isError ? "rgba(239, 68, 68, 0.5)" : "var(--color-border)"
+          isError
+            ? "rgba(139, 26, 26, 0.4)"
+            : "var(--color-rule-soft)"
         }`,
-        borderRadius: 6,
+        borderRadius: 3,
         fontSize: 11,
-        color: "var(--color-text-primary)",
+        fontFamily: "var(--font-body)",
+        color: "var(--color-ink-charcoal)",
         overflow: "hidden",
-        maxWidth: 180,
+        maxWidth: 200,
       }}
     >
       <FileText size={12} style={{ flexShrink: 0, opacity: 0.7 }} />
@@ -82,7 +85,7 @@ export function FileChip({
             left: 0,
             height: 2,
             width: `${progress}%`,
-            background: "var(--color-accent-violet)",
+            background: "var(--color-burgundy-deep)",
             transition: "width 100ms linear",
           }}
         />

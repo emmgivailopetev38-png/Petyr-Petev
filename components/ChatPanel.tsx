@@ -86,7 +86,7 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
         zIndex: 50,
         display: "flex",
         flexDirection: "column",
-        background: "var(--color-bg-deep)",
+        background: "var(--color-paper-cream)",
         border: "none",
         borderRadius: 0,
         overflow: "hidden",
@@ -95,10 +95,14 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        background: "var(--color-bg-deep)",
-        border: "1px solid var(--color-border)",
-        borderRadius: 12,
+        background: "var(--color-paper-cream)",
+        border: "1px solid var(--color-rule-soft)",
+        borderTop: "3px solid var(--color-burgundy-deep)",
+        borderRadius: 4,
         overflow: "hidden",
+        boxShadow:
+          "0 1px 2px rgba(31, 27, 22, 0.04), 0 8px 24px -12px rgba(31, 27, 22, 0.06)",
+        position: "relative",
       };
 
   const messageContainerStyle: React.CSSProperties = isFullscreen
@@ -149,16 +153,52 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
       >
         <span
           style={{
+            fontFamily: "var(--font-display)",
             fontWeight: 600,
-            fontSize: 13,
-            color: "var(--color-text-primary)",
+            fontSize: 15,
+            color: "var(--color-ink-near-black)",
             display: "flex",
-            alignItems: "center",
-            gap: 6,
+            alignItems: "baseline",
+            gap: 7,
+            letterSpacing: "0.005em",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
-          {chat.icon && <span style={{ fontSize: 14 }}>{chat.icon}</span>}
-          {chat.title}
+          {chat.icon && (
+            <span
+              style={{
+                fontSize: 16,
+                opacity: 0.92,
+                filter: "saturate(1.15)",
+              }}
+            >
+              {chat.icon}
+            </span>
+          )}
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {chat.title}
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 9,
+              color: "var(--color-ink-faint)",
+              letterSpacing: "0.12em",
+              marginLeft: 2,
+              flexShrink: 0,
+            }}
+          >
+            №{chat.slot}
+          </span>
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {chat.vertical && (
@@ -217,18 +257,36 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
       >
         <div style={messageContainerStyle}>
           {messages.length === 0 && !isLoading && (
-            <p
+            <div
               style={{
-                color: "var(--color-text-tertiary)",
-                fontSize: 12,
                 textAlign: "center",
-                marginTop: 24,
-                padding: "0 24px",
-                lineHeight: 1.6,
+                marginTop: 32,
+                padding: "0 28px",
               }}
             >
-              {chat.welcome_message ?? "Напишете нещо или плъзнете файл тук..."}
-            </p>
+              <div
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 14,
+                  color: "var(--color-ink-muted)",
+                  fontStyle: "italic",
+                  lineHeight: 1.7,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                {chat.welcome_message ??
+                  "Напишете нещо или плъзнете файл тук..."}
+              </div>
+              <div
+                style={{
+                  width: 32,
+                  height: 1,
+                  background: "var(--color-gold-warm)",
+                  margin: "16px auto 0",
+                  opacity: 0.6,
+                }}
+              />
+            </div>
           )}
           <div style={{ fontSize: messageFontSize }}>
             {messages.map((m) => (

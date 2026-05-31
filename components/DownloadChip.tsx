@@ -35,18 +35,20 @@ export function DownloadChip({ attachment }: { attachment: Attachment }) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        padding: "8px 12px",
-        background: "var(--color-bg-deep)",
-        border: "1px solid var(--color-border)",
-        borderRadius: 8,
+        padding: "9px 12px",
+        background: "var(--color-paper-cream)",
+        border: "1px solid var(--color-rule-soft)",
+        borderLeft: "2px solid var(--color-gold-warm)",
+        borderRadius: 3,
         marginTop: 8,
         fontSize: 12,
+        fontFamily: "var(--font-body)",
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            color: "var(--color-text-primary)",
+            color: "var(--color-ink-near-black)",
             fontWeight: 600,
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -55,7 +57,7 @@ export function DownloadChip({ attachment }: { attachment: Attachment }) {
         >
           {attachment.filename}
         </div>
-        <div style={{ color: "var(--color-text-tertiary)", fontSize: 11 }}>
+        <div style={{ color: "var(--color-ink-faint)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.05em" }}>
           {formatBytes(attachment.size)}
         </div>
       </div>
@@ -63,11 +65,15 @@ export function DownloadChip({ attachment }: { attachment: Attachment }) {
         onClick={handleClick}
         disabled={loading}
         style={{
-          background: "var(--color-accent-violet)",
+          background: "var(--color-burgundy-deep)",
           border: "none",
-          borderRadius: 6,
-          color: "#fff",
-          fontSize: 11,
+          borderRadius: 3,
+          color: "var(--color-paper-cream)",
+          fontSize: 10,
+          fontFamily: "var(--font-body)",
+          fontWeight: 600,
+          letterSpacing: "0.03em",
+          textTransform: "uppercase",
           padding: "6px 10px",
           cursor: loading ? "wait" : "pointer",
           display: "flex",
