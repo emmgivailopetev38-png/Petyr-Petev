@@ -7,6 +7,7 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { ChatMessage } from "@/components/ChatMessage";
 import { FileChip } from "@/components/FileChip";
 import { PlaybookMenu } from "@/components/PlaybookMenu";
+import { MonitorMenu } from "@/components/MonitorMenu";
 import { PlaybookRunBanner } from "@/components/PlaybookRunBanner";
 import { FILE_LIMITS } from "@/lib/files";
 import type { Chat } from "@/lib/types";
@@ -210,6 +211,7 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
               }
             />
           )}
+          <MonitorMenu chatId={chat.id} vertical={chat.vertical} />
           <button
             onClick={onToggleFullscreen}
             title={isFullscreen ? "Минимизирай" : "На цял екран"}
