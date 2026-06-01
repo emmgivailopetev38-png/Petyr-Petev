@@ -1,6 +1,7 @@
 import type { Message } from "@/lib/types";
 import { FileChip } from "@/components/FileChip";
 import { DownloadChip } from "@/components/DownloadChip";
+import { TypingIndicator } from "@/components/TypingIndicator";
 
 export function ChatMessage({
   message,
@@ -27,11 +28,12 @@ export function ChatMessage({
     >
       <div
         style={{
-          // In fullscreen we let assistant replies fill ~95% of the
-          // (now 1600px wide) column so the long-form ЗОП answers don't
-          // wrap into a thin ribbon. User bubbles stay narrower because
-          // they're usually short questions.
-          maxWidth: isFullscreen ? (isUser ? "75%" : "95%") : "80%",
+          // In fullscreen we let assistant replies fill the entire
+          // content column (the panel already has 40 px side padding so
+          // text doesn't slam against the edge). User bubbles stay
+          // narrower because they're usually short questions.
+          maxWidth: isFullscreen ? (isUser ? "70%" : "100%") : "80%",
+          width: isFullscreen && !isUser ? "100%" : undefined,
           padding: isFullscreen ? "14px 20px" : "10px 14px",
           borderRadius: isUser ? "8px 8px 2px 8px" : "2px 8px 8px 8px",
           background: isUser
@@ -70,17 +72,7 @@ export function ChatMessage({
           </div>
         )}
         {message.content ||
-          (inputAttachments.length === 0 && (
-            <span
-              style={{
-                opacity: 0.4,
-                fontFamily: "var(--font-mono)",
-                fontSize: 13,
-              }}
-            >
-              ▋
-            </span>
-          ))}
+          (inputAttachments.length === 0 && !isUser && <TypingIndicator />)}
         {outputAttachments.length > 0 && (
           <div>
             {outputAttachments.map((a) => (

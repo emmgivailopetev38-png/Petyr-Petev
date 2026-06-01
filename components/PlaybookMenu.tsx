@@ -70,9 +70,21 @@ export function PlaybookMenu({ chatId, workspaceId, onRunStarted }: Props) {
       <button
         onClick={() => setOpen(true)}
         title="Playbooks"
-        style={iconBtn}
+        style={{
+          ...iconBtn,
+          gap: 5,
+          padding: "4px 9px",
+          fontSize: 11,
+          color: "var(--color-burgundy-deep)",
+          background: "rgba(168, 139, 83, 0.10)",
+          border: "1px solid rgba(168, 139, 83, 0.30)",
+          borderRadius: 6,
+          fontWeight: 500,
+          whiteSpace: "nowrap",
+        }}
       >
         <Workflow size={13} />
+        <span>Playbooks</span>
       </button>
       {open && (
         <div
