@@ -26,6 +26,9 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ZOPEXPERT",
   description: "Обществени поръчки — асистент",
+  other: {
+    "x-ui-version": "v3-thinking-dots-fullwidth",
+  },
 };
 
 export default function RootLayout({
