@@ -20,9 +20,21 @@ export function MonitorMenu({ chatId, vertical }: Props) {
       <button
         onClick={() => setOpen(true)}
         title="Мониторинг на процедури"
-        style={iconBtn}
+        style={{
+          ...iconBtn,
+          gap: 5,
+          padding: "4px 9px",
+          fontSize: 11,
+          color: "var(--color-burgundy-deep)",
+          background: "rgba(107, 30, 45, 0.06)",
+          border: "1px solid rgba(107, 30, 45, 0.18)",
+          borderRadius: 6,
+          fontWeight: 500,
+          whiteSpace: "nowrap",
+        }}
       >
         <Satellite size={13} />
+        <span>Мониторинг</span>
       </button>
       {open && (
         <div onClick={() => setOpen(false)} style={overlay}>

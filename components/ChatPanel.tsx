@@ -106,17 +106,17 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
         position: "relative",
       };
 
-  // In fullscreen, give the content room — 1100px gives a comfortable
-  // reading column on common desktop widths (1280-1920) without becoming
-  // a wall of edge-to-edge text on ultra-wide monitors.
+  // In fullscreen, let the content breathe edge-to-edge with only modest
+  // side gutters. Message bubbles inside still have their own max-width
+  // so text on very wide screens stays readable, but on a typical 1440px
+  // monitor the chat now uses ~1360px of horizontal space (vs the old
+  // ~800px column that left huge cream margins).
   const messageContainerStyle: React.CSSProperties = isFullscreen
-    ? { maxWidth: 1100, margin: "0 auto", width: "100%" }
+    ? { maxWidth: 1600, margin: "0 auto", width: "100%" }
     : {};
 
-  // Same width constraint applied to the input bar so its left/right edges
-  // line up with the message column instead of stretching the whole screen.
   const inputRowStyle: React.CSSProperties = isFullscreen
-    ? { maxWidth: 1100, margin: "0 auto", width: "100%" }
+    ? { maxWidth: 1600, margin: "0 auto", width: "100%" }
     : { width: "100%" };
 
   const messageFontSize = isFullscreen ? 15 : 13;
@@ -320,7 +320,7 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
           )}
           <div style={{ fontSize: messageFontSize }}>
             {messages.map((m) => (
-              <ChatMessage key={m.id} message={m} />
+              <ChatMessage key={m.id} message={m} isFullscreen={isFullscreen} />
             ))}
           </div>
           <div ref={bottomRef} />

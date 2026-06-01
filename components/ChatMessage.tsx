@@ -2,7 +2,13 @@ import type { Message } from "@/lib/types";
 import { FileChip } from "@/components/FileChip";
 import { DownloadChip } from "@/components/DownloadChip";
 
-export function ChatMessage({ message }: { message: Message }) {
+export function ChatMessage({
+  message,
+  isFullscreen = false,
+}: {
+  message: Message;
+  isFullscreen?: boolean;
+}) {
   const isUser = message.role === "user";
   const inputAttachments = (message.attachments ?? []).filter(
     (a) => a.kind === "input",
@@ -16,13 +22,17 @@ export function ChatMessage({ message }: { message: Message }) {
       style={{
         display: "flex",
         justifyContent: isUser ? "flex-end" : "flex-start",
-        marginBottom: 10,
+        marginBottom: isFullscreen ? 14 : 10,
       }}
     >
       <div
         style={{
-          maxWidth: "80%",
-          padding: "10px 14px",
+          // In fullscreen we let assistant replies fill ~95% of the
+          // (now 1600px wide) column so the long-form ЗОП answers don't
+          // wrap into a thin ribbon. User bubbles stay narrower because
+          // they're usually short questions.
+          maxWidth: isFullscreen ? (isUser ? "75%" : "95%") : "80%",
+          padding: isFullscreen ? "14px 20px" : "10px 14px",
           borderRadius: isUser ? "8px 8px 2px 8px" : "2px 8px 8px 8px",
           background: isUser
             ? "var(--color-burgundy-deep)"
@@ -33,8 +43,8 @@ export function ChatMessage({ message }: { message: Message }) {
             ? "var(--color-paper-cream)"
             : "var(--color-ink-charcoal)",
           fontFamily: "var(--font-body)",
-          fontSize: 13.5,
-          lineHeight: 1.65,
+          fontSize: isFullscreen ? 15.5 : 13.5,
+          lineHeight: isFullscreen ? 1.7 : 1.65,
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
           letterSpacing: "0.005em",
