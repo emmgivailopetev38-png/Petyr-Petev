@@ -106,9 +106,18 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
         position: "relative",
       };
 
+  // In fullscreen, give the content room — 1100px gives a comfortable
+  // reading column on common desktop widths (1280-1920) without becoming
+  // a wall of edge-to-edge text on ultra-wide monitors.
   const messageContainerStyle: React.CSSProperties = isFullscreen
-    ? { maxWidth: 800, margin: "0 auto", width: "100%" }
+    ? { maxWidth: 1100, margin: "0 auto", width: "100%" }
     : {};
+
+  // Same width constraint applied to the input bar so its left/right edges
+  // line up with the message column instead of stretching the whole screen.
+  const inputRowStyle: React.CSSProperties = isFullscreen
+    ? { maxWidth: 1100, margin: "0 auto", width: "100%" }
+    : { width: "100%" };
 
   const messageFontSize = isFullscreen ? 15 : 13;
 
@@ -215,24 +224,43 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
           <button
             onClick={onToggleFullscreen}
             title={isFullscreen ? "Минимизирай" : "На цял екран"}
-            style={iconBtnStyle}
+            style={{
+              ...iconBtnStyle,
+              padding: isFullscreen ? "6px 10px" : 4,
+              gap: 6,
+              fontSize: 12,
+              color: "var(--color-ink-muted)",
+              border: isFullscreen
+                ? "1px solid var(--color-rule-soft)"
+                : "none",
+              borderRadius: 6,
+            }}
           >
-            {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            {isFullscreen ? (
+              <>
+                <Minimize2 size={14} />
+                <span>Минимизирай</span>
+              </>
+            ) : (
+              <Maximize2 size={13} />
+            )}
           </button>
           <button
             onClick={clearChat}
             title="Изчисти историята"
             style={{
               background: "transparent",
-              border: "none",
-              color: "var(--color-text-tertiary)",
+              border: isFullscreen
+                ? "1px solid var(--color-rule-soft)"
+                : "none",
+              color: "var(--color-ink-muted)",
               cursor: "pointer",
-              fontSize: 11,
-              padding: "2px 6px",
-              borderRadius: 4,
+              fontSize: isFullscreen ? 12 : 11,
+              padding: isFullscreen ? "6px 10px" : "2px 6px",
+              borderRadius: 6,
             }}
           >
-            Изчисти
+            Изчисти историята
           </button>
         </div>
       </div>
@@ -337,83 +365,94 @@ export function ChatPanel({ chat, isFullscreen, onToggleFullscreen }: Props) {
         style={{
           padding: "10px 14px",
           borderTop: "1px solid var(--color-border)",
-          display: "flex",
-          gap: 8,
           flexShrink: 0,
-          alignItems: "flex-end",
         }}
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          onChange={onPickFiles}
-          style={{ display: "none" }}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          title="Прикрепи файл"
-          disabled={files.length >= FILE_LIMITS.maxFilesPerMessage}
+        <div
           style={{
-            ...iconBtnStyle,
-            opacity:
-              files.length >= FILE_LIMITS.maxFilesPerMessage ? 0.4 : 0.8,
+            ...inputRowStyle,
+            display: "flex",
+            gap: 8,
+            alignItems: "flex-end",
           }}
         >
-          <Paperclip size={15} />
-        </button>
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            chat.vertical
-              ? `Питай за ${chat.title.toLowerCase()}... (Enter за изпращане)`
-              : "Съобщение... (Enter за изпращане)"
-          }
-          rows={1}
-          style={{
-            flex: 1,
-            background: "var(--color-input)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 8,
-            color: "var(--color-text-primary)",
-            fontSize: 13,
-            padding: "8px 12px",
-            resize: "none",
-            outline: "none",
-            maxHeight: 80,
-            overflowY: "auto",
-          }}
-        />
-        <button
-          onClick={handleSend}
-          disabled={
-            isLoading ||
-            isUploading ||
-            (!input.trim() && completedAttachments.length === 0)
-          }
-          style={{
-            background: "var(--color-accent-violet)",
-            border: "none",
-            borderRadius: 8,
-            color: "#fff",
-            padding: "8px 12px",
-            cursor:
-              isLoading || isUploading ? "not-allowed" : "pointer",
-            opacity:
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={onPickFiles}
+            style={{ display: "none" }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Прикрепи файл"
+            disabled={files.length >= FILE_LIMITS.maxFilesPerMessage}
+            style={{
+              ...iconBtnStyle,
+              opacity:
+                files.length >= FILE_LIMITS.maxFilesPerMessage ? 0.4 : 0.8,
+            }}
+          >
+            <Paperclip size={isFullscreen ? 17 : 15} />
+          </button>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              chat.vertical
+                ? `Питай за ${chat.title.toLowerCase()}... (Enter за изпращане)`
+                : "Съобщение... (Enter за изпращане)"
+            }
+            rows={isFullscreen ? 2 : 1}
+            style={{
+              flex: 1,
+              background: "var(--color-input)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 8,
+              color: "var(--color-text-primary)",
+              fontSize: isFullscreen ? 15 : 13,
+              padding: isFullscreen ? "10px 14px" : "8px 12px",
+              resize: "none",
+              outline: "none",
+              maxHeight: isFullscreen ? 160 : 80,
+              overflowY: "auto",
+              lineHeight: 1.5,
+            }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={
               isLoading ||
               isUploading ||
               (!input.trim() && completedAttachments.length === 0)
-                ? 0.45
-                : 1,
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Send size={15} />
-        </button>
+            }
+            style={{
+              background: "var(--color-accent-violet)",
+              border: "none",
+              borderRadius: 8,
+              color: "#fff",
+              padding: isFullscreen ? "10px 16px" : "8px 12px",
+              cursor:
+                isLoading || isUploading ? "not-allowed" : "pointer",
+              opacity:
+                isLoading ||
+                isUploading ||
+                (!input.trim() && completedAttachments.length === 0)
+                  ? 0.45
+                  : 1,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: isFullscreen ? 14 : 13,
+              fontWeight: 500,
+            }}
+          >
+            <Send size={isFullscreen ? 17 : 15} />
+            {isFullscreen && <span>Изпрати</span>}
+          </button>
+        </div>
       </div>
     </div>
   );
