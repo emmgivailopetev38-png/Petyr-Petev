@@ -68,6 +68,36 @@ describe("streamHermes", () => {
     expect(create).toHaveBeenCalledTimes(2);
   });
 
+  it("reformulates the last user message on retry to steer away from tool-use", async () => {
+    const create = vi
+      .fn()
+      .mockResolvedValueOnce(asyncGenOf([]))
+      .mockResolvedValueOnce(asyncGenOf(["ok"]));
+    (OpenAI as unknown as { prototype: { chat: { completions: { create: typeof create } } } }).prototype.chat = {
+      completions: { create },
+    };
+
+    const { stream } = await streamHermes({
+      messages: [
+        { role: "system", content: "sys" },
+        { role: "user", content: "Виж файловете" },
+      ],
+      timeoutMs: 5000,
+    });
+    await readAll(stream);
+
+    // First call: unmodified
+    const firstCall = create.mock.calls[0][0];
+    expect(firstCall.messages[1].content).toBe("Виж файловете");
+
+    // Second call (retry): reformulated with text-only instruction prefix
+    const secondCall = create.mock.calls[1][0];
+    expect(secondCall.messages[1].content).toContain("ВАЖНА ИНСТРУКЦИЯ");
+    expect(secondCall.messages[1].content).toContain("Виж файловете");
+    // System message stays intact at index 0
+    expect(secondCall.messages[0].content).toBe("sys");
+  });
+
   it("returns grace message after both attempts produce empty content", async () => {
     const create = vi.fn().mockResolvedValue(asyncGenOf([]));
     (OpenAI as unknown as { prototype: { chat: { completions: { create: typeof create } } } }).prototype.chat = {
@@ -79,7 +109,7 @@ describe("streamHermes", () => {
       timeoutMs: 5000,
     });
     const text = await readAll(stream);
-    expect(text).toContain("проблем");
+    expect(text).toContain("преформулираш");
     expect(create).toHaveBeenCalledTimes(2);
   });
 
@@ -94,7 +124,7 @@ describe("streamHermes", () => {
       timeoutMs: 5000,
     });
     const text = await readAll(stream);
-    expect(text).toContain("проблем");
+    expect(text).toContain("преформулираш");
     expect(create).toHaveBeenCalledTimes(2);
   });
 });

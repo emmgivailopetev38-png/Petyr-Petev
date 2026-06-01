@@ -1,9 +1,45 @@
 import OpenAI from "openai";
 
 const GRACE_MESSAGE =
-  "Извинявам се, имах временен проблем с обработката. Моля, опитай отново или преформулирай въпроса.";
+  "Не успях да формулирам отговор за този въпрос. Възможна причина: " +
+  "Hermes се опита да използва външен инструмент, който не е активен. " +
+  "Опитай да преформулираш по-конкретно — например вместо 'виж файловете' опиши " +
+  "какво точно искаш да анализирам, или прикачи файл с ясен въпрос за съдържанието му.";
 const MIN_VALID_CHARS = 1;
 const MAX_RETRIES = 1; // 1 initial + 1 retry = 2 total attempts
+
+/**
+ * Hermes' OpenAI-compatible endpoint sometimes returns 0 tokens when the
+ * model decides to call a tool (its tool-call output isn't relayed as text).
+ * On retry, we prepend an explicit text-only instruction to the last user
+ * message so the model is steered toward a plain-text answer.
+ */
+function reformulateAsTextOnly(
+  messages: HermesMessage[],
+): HermesMessage[] {
+  let lastUserIdx = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user") {
+      lastUserIdx = i;
+      break;
+    }
+  }
+  if (lastUserIdx < 0) return messages;
+
+  const original = messages[lastUserIdx].content;
+  const reformulated =
+    "[ВАЖНА ИНСТРУКЦИЯ: Отговори САМО с текст. БЕЗ функции, БЕЗ tool calls, " +
+    "БЕЗ външни инструменти. Дори ако потребителят използва команден стил " +
+    "('виж', 'провери', 'направи', 'анализирай'), отговори с думи какво знаеш, " +
+    "какво би направил, или какво ти е необходимо от потребителя.]\n\n" +
+    original;
+
+  return [
+    ...messages.slice(0, lastUserIdx),
+    { role: "user", content: reformulated },
+    ...messages.slice(lastUserIdx + 1),
+  ];
+}
 
 export type HermesMessage = {
   role: "system" | "user" | "assistant";
@@ -96,7 +132,13 @@ export async function streamHermes(
     async start(controller) {
       let text: string | null = null;
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-        text = await collectAttempt(options.messages, model, timeoutMs);
+        // On retry, reformulate the last user message to steer Hermes away
+        // from tool-use (which returns empty content over OpenAI-compat API).
+        const msgs =
+          attempt === 0
+            ? options.messages
+            : reformulateAsTextOnly(options.messages);
+        text = await collectAttempt(msgs, model, timeoutMs);
         if (text) break;
       }
 
