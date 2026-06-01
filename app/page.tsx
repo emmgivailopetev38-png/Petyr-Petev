@@ -59,6 +59,7 @@ export default async function HomePage() {
         </div>
         <div style={{ display: "flex", gap: 2 }}>
           {[
+            { href: "/procurements", icon: "📋", title: "Pipeline" },
             { href: "/admin/monitor", icon: "🛡️", title: "Мониторинг" },
             { href: "/admin/knowledge", icon: "📚", title: "База знания" },
             { href: "/admin/workspaces", icon: "⚙️", title: "Настройки" },
