@@ -119,18 +119,20 @@ export async function POST(request: NextRequest) {
     messages.push({ role: m.role, content: m.content });
   }
 
-  const { stream, fullText } = await streamHermes({ messages });
-
-  // Persist assistant message after stream completes (in parallel with delivery)
-  fullText.then(async (text) => {
-    const outputUrls = extractOutputUrls(text);
-    const outputAttachments = await urlsToAttachments(outputUrls);
-    await supabase.from("messages").insert({
-      chat_id: chatId,
-      role: "assistant",
-      content: text,
-      attachments: outputAttachments,
-    });
+  const { stream } = await streamHermes({
+    messages,
+    // Persistence runs INSIDE the stream lifecycle so Vercel keeps the
+    // serverless function alive until the assistant message is saved.
+    onComplete: async (text) => {
+      const outputUrls = extractOutputUrls(text);
+      const outputAttachments = await urlsToAttachments(outputUrls);
+      await supabase.from("messages").insert({
+        chat_id: chatId,
+        role: "assistant",
+        content: text,
+        attachments: outputAttachments,
+      });
+    },
   });
 
   return new Response(stream, {

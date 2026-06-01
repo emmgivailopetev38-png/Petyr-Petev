@@ -14,6 +14,13 @@ export type StreamHermesOptions = {
   messages: HermesMessage[];
   timeoutMs?: number;
   model?: string;
+  /**
+   * Called with the final text BEFORE the stream is closed. Use this for
+   * side effects that must complete before the serverless function exits
+   * (e.g. persisting the assistant message). Errors are swallowed so they
+   * don't crash the response.
+   */
+  onComplete?: (text: string) => Promise<void>;
 };
 
 export type StreamHermesResult = {
@@ -95,6 +102,17 @@ export async function streamHermes(
 
       const finalText = text ?? GRACE_MESSAGE;
       controller.enqueue(encoder.encode(finalText));
+
+      // Run side-effects (persistence etc.) INSIDE the stream lifecycle so
+      // Vercel keeps the function alive until they complete.
+      if (options.onComplete) {
+        try {
+          await options.onComplete(finalText);
+        } catch {
+          // swallow — don't break the response
+        }
+      }
+
       controller.close();
       resolveFullText(finalText);
     },
