@@ -90,10 +90,13 @@ describe("streamHermes", () => {
     const firstCall = create.mock.calls[0][0];
     expect(firstCall.messages[1].content).toBe("Виж файловете");
 
-    // Second call (retry): reformulated with text-only instruction prefix
+    // Second call (retry): reformulated as a meta-question that wraps
+    // the original text so Hermes returns a plain-text answer instead of
+    // attempting a tool call.
     const secondCall = create.mock.calls[1][0];
-    expect(secondCall.messages[1].content).toContain("ВАЖНА ИНСТРУКЦИЯ");
+    expect(secondCall.messages[1].content).toContain("Потребителят написа");
     expect(secondCall.messages[1].content).toContain("Виж файловете");
+    expect(secondCall.messages[1].content).toContain("БЕЗ tool calls");
     // System message stays intact at index 0
     expect(secondCall.messages[0].content).toBe("sys");
   });

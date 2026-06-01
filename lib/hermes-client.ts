@@ -27,12 +27,17 @@ function reformulateAsTextOnly(
   if (lastUserIdx < 0) return messages;
 
   const original = messages[lastUserIdx].content;
+  // Wrap the original as a meta-question. Direct command-style messages
+  // ('Виж файловете...') make Hermes attempt a tool call and return 0
+  // tokens. Rephrasing as 'the user wrote X; explain what they need /
+  // what you would do, without executing' steers it back to text mode.
+  // Confirmed working against the Hermes endpoint.
   const reformulated =
-    "[ВАЖНА ИНСТРУКЦИЯ: Отговори САМО с текст. БЕЗ функции, БЕЗ tool calls, " +
-    "БЕЗ външни инструменти. Дори ако потребителят използва команден стил " +
-    "('виж', 'провери', 'направи', 'анализирай'), отговори с думи какво знаеш, " +
-    "какво би направил, или какво ти е необходимо от потребителя.]\n\n" +
-    original;
+    "Потребителят написа следната заявка:\n\n" +
+    `"${original}"\n\n` +
+    "Обясни в текст какво би направил или какво ти е необходимо от " +
+    "потребителя, за да отговориш качествено. БЕЗ да изпълняваш действия, " +
+    "БЕЗ tool calls — само текстов отговор.";
 
   return [
     ...messages.slice(0, lastUserIdx),
