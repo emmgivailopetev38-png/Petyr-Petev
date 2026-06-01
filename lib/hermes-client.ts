@@ -1,50 +1,13 @@
 import OpenAI from "openai";
 
 const GRACE_MESSAGE =
-  "Не успях да формулирам отговор за този въпрос. Възможна причина: " +
-  "Hermes се опита да използва външен инструмент, който не е активен. " +
-  "Опитай да преформулираш по-конкретно — например вместо 'виж файловете' опиши " +
-  "какво точно искаш да анализирам, или прикачи файл с ясен въпрос за съдържанието му.";
+  "Не успях да формулирам отговор за този въпрос. Hermes сървърът върна " +
+  "грешка 'agent_incomplete' (вътрешен бъг при опит за tool-use). " +
+  "Опитай да преформулираш по-конкретно — например вместо 'виж файловете' " +
+  "опиши какво точно искаш да анализирам, или прикачи файл с ясен въпрос " +
+  "за съдържанието му.";
 const MIN_VALID_CHARS = 1;
 const MAX_RETRIES = 1; // 1 initial + 1 retry = 2 total attempts
-
-/**
- * Hermes' OpenAI-compatible endpoint sometimes returns 0 tokens when the
- * model decides to call a tool (its tool-call output isn't relayed as text).
- * On retry, we prepend an explicit text-only instruction to the last user
- * message so the model is steered toward a plain-text answer.
- */
-function reformulateAsTextOnly(
-  messages: HermesMessage[],
-): HermesMessage[] {
-  let lastUserIdx = -1;
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role === "user") {
-      lastUserIdx = i;
-      break;
-    }
-  }
-  if (lastUserIdx < 0) return messages;
-
-  const original = messages[lastUserIdx].content;
-  // Wrap the original as a meta-question. Direct command-style messages
-  // ('Виж файловете...') make Hermes attempt a tool call and return 0
-  // tokens. Rephrasing as 'the user wrote X; explain what they need /
-  // what you would do, without executing' steers it back to text mode.
-  // Confirmed working against the Hermes endpoint.
-  const reformulated =
-    "Потребителят написа следната заявка:\n\n" +
-    `"${original}"\n\n` +
-    "Обясни в текст какво би направил или какво ти е необходимо от " +
-    "потребителя, за да отговориш качествено. БЕЗ да изпълняваш действия, " +
-    "БЕЗ tool calls — само текстов отговор.";
-
-  return [
-    ...messages.slice(0, lastUserIdx),
-    { role: "user", content: reformulated },
-    ...messages.slice(lastUserIdx + 1),
-  ];
-}
 
 export type HermesMessage = {
   role: "system" | "user" | "assistant";
@@ -68,6 +31,94 @@ export type StreamHermesResult = {
   stream: ReadableStream<Uint8Array>;
   fullText: Promise<string>;
 };
+
+/**
+ * Verbs / phrases that signal the user is requesting an action. Hermes'
+ * underlying agent tries to invoke a tool for these and the OpenAI-compat
+ * adapter loses the tool-call (returns 0 tokens with finish_reason=stop)
+ * — confirmed via direct probe: `'NoneType' object is not iterable` /
+ * `code: agent_incomplete`. When we see one of these we skip the doomed
+ * first attempt and go straight to a reformulated meta-question.
+ *
+ * NOTE: \b in JS regex only respects ASCII word chars, so Cyrillic words
+ * need Unicode-aware boundaries via lookarounds + the /u flag.
+ */
+const ACTION_TRIGGER_BG = new RegExp(
+  "(?<![\\p{L}\\p{M}])(?:" +
+    [
+      // base imperative + optional "-те" plural form
+      "виж(?:те|даш|даме|дате)?",
+      "провер(?:и|ете|явай|явайте)",
+      "потърс(?:и|ете|вай|вайте)",
+      "намер(?:и|ете)",
+      "направ(?:и|ете|ям|им)",
+      "анализира(?:й|йте|м|ме)",
+      "прегледа(?:й|йте|м|ме)",
+      "отвор(?:и|ете)",
+      "прочет(?:и|ете)",
+      "качи(?:те)?",
+      "свали(?:те)?",
+      "изпълн(?:и|ете|и ги|ете ги)",
+      "стартира(?:й|йте)",
+      "донес(?:и|ете)",
+      "вземи(?:те)?",
+      "изкара(?:й|йте)",
+      "извлеч(?:и|ете)",
+      "дай ми",
+      "дайте ми",
+      "покаж(?:и|ете)",
+      "сравн(?:и|ете)",
+      "обобщ(?:и|ете)",
+      "изпрат(?:и|ете)",
+      "публикува(?:й|йте)",
+      "монитори(?:рай|райте|нг)",
+      "следи(?:те)?",
+    ].join("|") +
+    ")(?![\\p{L}\\p{M}])",
+  "iu",
+);
+
+const ACTION_TRIGGER_EN =
+  /\b(check|find|search|fetch|download|upload|analy[sz]e|run|execute|read|open|show|list|send|publish|monitor|track|fix|build)\b/iu;
+
+export function hasActionStyle(text: string): boolean {
+  return ACTION_TRIGGER_BG.test(text) || ACTION_TRIGGER_EN.test(text);
+}
+
+/**
+ * Wrap the last user message as a meta-question. Direct command-style
+ * messages ('Виж файловете...') make Hermes try a tool call which crashes
+ * the agent server (NoneType is not iterable) and returns 0 tokens.
+ * Rephrasing as 'the user wrote X; explain what they need / what you would
+ * do, without executing' steers it back to text mode. Confirmed working
+ * against the live Hermes endpoint.
+ */
+export function reformulateAsTextOnly(
+  messages: HermesMessage[],
+): HermesMessage[] {
+  let lastUserIdx = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user") {
+      lastUserIdx = i;
+      break;
+    }
+  }
+  if (lastUserIdx < 0) return messages;
+
+  const original = messages[lastUserIdx].content;
+  const reformulated =
+    "Потребителят написа следната заявка:\n\n" +
+    `"${original}"\n\n` +
+    "Обясни в текст какво би направил или какво ти е необходимо от " +
+    "потребителя, за да отговориш качествено. БЕЗ да изпълняваш действия, " +
+    "БЕЗ tool calls — само текстов отговор.";
+
+  return [
+    ...messages.slice(0, lastUserIdx),
+    { role: "user", content: reformulated },
+    ...messages.slice(lastUserIdx + 1),
+  ];
+}
 
 let _clientInstance: OpenAI | null = null;
 
@@ -127,6 +178,16 @@ export async function streamHermes(
   const timeoutMs = options.timeoutMs ?? 50_000;
   const model = options.model ?? "hermes-agent";
 
+  // Find the latest user message to decide whether to pre-reformulate.
+  let lastUserContent = "";
+  for (let i = options.messages.length - 1; i >= 0; i--) {
+    if (options.messages[i].role === "user") {
+      lastUserContent = options.messages[i].content;
+      break;
+    }
+  }
+  const isActionStyle = hasActionStyle(lastUserContent);
+
   let resolveFullText!: (s: string) => void;
   const fullText = new Promise<string>((res) => {
     resolveFullText = res;
@@ -137,12 +198,14 @@ export async function streamHermes(
     async start(controller) {
       let text: string | null = null;
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-        // On retry, reformulate the last user message to steer Hermes away
-        // from tool-use (which returns empty content over OpenAI-compat API).
-        const msgs =
-          attempt === 0
-            ? options.messages
-            : reformulateAsTextOnly(options.messages);
+        // Strategy:
+        //   - Action-style (command verbs): reformulate from attempt 0 to
+        //     avoid the wasted first attempt (Hermes will crash on tool-use).
+        //   - Regular messages: try as-is on attempt 0, reformulate on retry.
+        const shouldReformulate = isActionStyle || attempt > 0;
+        const msgs = shouldReformulate
+          ? reformulateAsTextOnly(options.messages)
+          : options.messages;
         text = await collectAttempt(msgs, model, timeoutMs);
         if (text) break;
       }
